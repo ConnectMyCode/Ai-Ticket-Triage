@@ -9,7 +9,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Map;
 
 /**
- * Handles OpenAI API communication safely
+ * IMP note : Though the file name is OPENAI Service but it is using Groq Api services... 
+ * Handles Groq API communication safely
  */
 
 @Service

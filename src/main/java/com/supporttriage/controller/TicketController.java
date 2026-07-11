@@ -66,7 +66,7 @@ public class TicketController {
                              @RequestBody UpdateTicketStatusRequest request) {
         ticketService.updateTicketStatus(id, request.getStatus());
     }
-    
+     
     
     
     /*Close the Ticket   

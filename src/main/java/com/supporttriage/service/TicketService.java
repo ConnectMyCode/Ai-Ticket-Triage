@@ -34,7 +34,7 @@ public class TicketService {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
     }
-    
+       
     /**
      * Create ticket for logged-in user
      */
@@ -307,12 +307,20 @@ public class TicketService {
         		throw new RuntimeException("Ticket already closed");        		
         }
         
-        //Added empty-string guard for safer production behavior. If user i/p: " "   then it can break the Production.So added this condition make it more production safer. 
-        if(request.getResolutionNote() == null || request.getResolutionNote().trim().isEmpty() || request.getFinalResponse() == null || request.getFinalResponse().trim().isEmpty())   
-        {
-        	throw new RuntimeException("Ticket must be TRIAGED before Responding");
+      //to check whether the ticket has been triaged before allowing a response.
+     // Workflow validation
+        if (ticket.getTriagedAt() == null) {
+            throw new RuntimeException("Ticket must be TRIAGED before Responding");
         }
 
+        // Request validation
+        if (request.getResolutionNote() == null
+                || request.getResolutionNote().trim().isEmpty()
+                || request.getFinalResponse() == null
+                || request.getFinalResponse().trim().isEmpty()) {
+            throw new RuntimeException("Final response and resolution note are required");
+        }
+        
         //5. Save Response details
         ticket.setFinalResponse(request.getFinalResponse());
         ticket.setResolutionNote(request.getResolutionNote());

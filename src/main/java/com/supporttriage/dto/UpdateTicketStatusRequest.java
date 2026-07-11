@@ -15,5 +15,5 @@ public class UpdateTicketStatusRequest {
 
     public void setStatus(TicketStatus status) {
         this.status = status;
-    }
+}
 }

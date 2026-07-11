@@ -26,7 +26,7 @@ public class AiTriageParser {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * Parse OpenAI JSON response
+     * Parse Groq AI JSON response
      */
     public AiTriageResponse parse(String rawResponse) {
 
