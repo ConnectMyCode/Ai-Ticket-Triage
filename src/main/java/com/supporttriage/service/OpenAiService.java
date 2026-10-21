@@ -44,7 +44,7 @@ public class OpenAiService {
         try {
 
             String url = "https://api.groq.com/openai/v1/chat/completions";
-            
+            										
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(apiKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -58,9 +58,11 @@ public class OpenAiService {
                             )
                     },
                     "temperature", 0.0,
-                    "max_tokens", 250
+                    "max_completion_tokens", 1000,
+                    "reasoning_effort", "low",
+                    "include_reasoning", false
             );
-
+            
             HttpEntity<Map<String, Object>> entity =
                     new HttpEntity<>(requestBody, headers);
 

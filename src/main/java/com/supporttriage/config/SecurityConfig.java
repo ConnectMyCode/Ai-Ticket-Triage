@@ -1,6 +1,6 @@
 package com.supporttriage.config;
 
-import com.supporttriage.security.JwtFilter;
+import com.supporttriage.security.JwtFilter; 
 import com.supporttriage.security.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -20,15 +21,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            JwtUtil jwtUtil,
-                                           UserDetailsService userDetailsService) throws Exception {
+                                           UserDetailsService userDetailsService,
+                                           CorsConfigurationSource corsConfigurationSource) throws Exception {
 
         JwtFilter jwtFilter = new JwtFilter(jwtUtil, userDetailsService);
 
         http
+        // Enable CORS using the configuration defined in CorsConfig.
+        .cors(cors ->
+            cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/health/**").permitAll()      
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

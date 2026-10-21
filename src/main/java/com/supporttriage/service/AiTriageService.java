@@ -81,7 +81,7 @@ import com.supporttriage.entity.User;
 	        aiRun.setUser(user);
 	        aiRun.setPurpose("TRIAGE");
 	        aiRun.setProvider("GROQ");
-	        aiRun.setModel("llama-3.1-8b-instant");
+	        aiRun.setModel("openai/gpt-oss-120b");
 	        aiRun.setPromptVersion(aiPromptBuilder.getPromptVersion());
 	        aiRun.setStatus("PENDING");
 	        aiRun.setRawRequest(prompt);
@@ -109,7 +109,14 @@ import com.supporttriage.entity.User;
 	            return response;
 
 	        } catch (Exception e) {
-
+	        	
+	        	System.out.println("========== AI TRIAGE ERROR ==========");
+	            System.out.println("Exception Type: " + e.getClass().getName());
+	            System.out.println("Exception Message: " + e.getMessage());
+	            e.printStackTrace();
+	            System.out.println("=====================================");
+	            
+	        	
 	            // 8. Save failure
 	            aiRun.setStatus("FAILED");
 	            aiRun.setErrorMessage(e.getMessage());

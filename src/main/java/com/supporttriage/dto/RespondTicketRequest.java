@@ -17,11 +17,11 @@ public class RespondTicketRequest {
     public String getResolutionNote() {
         return resolutionNote;
     }
-
+    
     public void setResolutionNote(String resolutionNote) {
         this.resolutionNote = resolutionNote;
     }
-
+    
 	
 	
 }
