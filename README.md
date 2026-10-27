@@ -13,7 +13,7 @@ Build a support ticket system where a user creates customer tickets and the syst
 
 The user reviews/edits the AI output and saves it. The entire app is deployed and production-ready for a beginner.
 
-Frontend: Appsmith
+Frontend: React.js , Javascript
 Backend: Java + Spring Boot (REST)
 DB: PostgreSQL
 Deployment: Docker + PaaS
