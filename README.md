@@ -13,7 +13,7 @@ Build a support ticket system where a user creates customer tickets and the syst
 
 The user reviews/edits the AI output and saves it. The entire app is deployed and production-ready for a beginner.
 
-Frontend: Appsmith
+Frontend: React.js , Javascript
 Backend: Java + Spring Boot (REST)
 DB: PostgreSQL
 Deployment: Docker + PaaS
@@ -89,7 +89,7 @@ OUT OF SCOPE (v1):
 - Output is stored as an AI run record with request/response logged.
 - If AI fails (timeout/bad output), UI shows a helpful error and ticket stays usable.
 
-### UI (Appsmith)
+### UI (React.js)
 
 - Create ticket page: form + submit + success/error messages.
 - Ticket list page: table + filters + search.
@@ -230,7 +230,7 @@ Base: /api
 - Security:
     - Passwords hashed with BCrypt
     - JWT auth (expires)
-    - CORS configured for Appsmith
+    - CORS configured for React.js
 - Observability:
     - Log request path + response status
     - Log AI run failures clearly
