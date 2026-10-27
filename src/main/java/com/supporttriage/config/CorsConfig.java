@@ -20,7 +20,8 @@ public class CorsConfig {
         // Allow the local React + Vite frontend.
         // Add the frontend EC2 origin to this list when its IP is known.
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173"
+                "http://localhost:5173", 
+                "http://3.7.223.110"
                 // Example later: "http://YOUR_FRONTEND_EC2_PUBLIC_IP"
         ));
 
