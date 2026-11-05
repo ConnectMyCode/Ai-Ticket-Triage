@@ -599,6 +599,8 @@ function App() {
                         </form>
                     </section>
                 ) : (
+                        <>
+
                                     <section className="welcome-section">
                                         <h2>Welcome to Ticket Triage</h2>
                                         <p>
@@ -622,7 +624,7 @@ function App() {
                                                 <span>Live ticket data</span>
                                             </article>
                                         ))}
-                                    </section>
+
                     
                                     <section className="tickets-panel">
                                         <div className="panel-header">
@@ -631,7 +633,8 @@ function App() {
                                                 <p>Your latest support tickets.</p>
                                             </div>
                                         </div>
-                    
+                                    </section>
+                                        </>
                                         {dashboardLoading && (
                                             <p className="dashboard-message">Loading tickets...</p>
                                         )}
