@@ -89,4 +89,46 @@ git stash / git stash pop   # set aside uncommitted work, then restore it
         - 4 Conversation resolution: review comments must be resolved before merging.
 
 ![2_Git_RuleSet.png](2_Git_RuleSet.png)
-![Git_RuleSet_.png](Git_RuleSet_.png)
+![Git_RuleSet_.png](Git_RuleSet_.png )      
+
+
+Got it. Your situation is:
+- frontend (local): Contains the latest committed changes.
+  - fix/dashboard-jsx (local): Your existing feature branch.
+    - Goal: Merge the commits from local frontend into local fix/dashboard-jsx, then push fix/dashboard-jsx to GitHub.
+    
+            Step 1: Check your working tree
+            git status
+        
+    
+            Make sure it says:
+            nothing to commit, working tree clean
+            
+            
+            Step 2: Switch to the target branch
+            git switch fix/dashboard-jsx
+            
+            
+            Step 3: Merge local frontend into it
+            git merge frontend
+            
+              This brings the commits from your local frontend branch into fix/dashboard-jsx.
+
+              If Git reports conflicts, don't overwrite files. Share the conflict details so we can resolve them safely.
+            Step 4: Verify the merge
+            git log --oneline --graph --decorate -10
+            git status
+            
+            Step 5: Push the feature branch to GitHub
+            git push -u origin fix/dashboard-jsx 
+            
+
+            Step 6: Create or update your Pull Request
+            On GitHub, make sure the PR direction is:
+            Setting	            Branch
+            Base (destination)	frontend
+            Compare (source)	fix/dashboard-jsx
+            
+            Important: Do not merge fix/dashboard-jsx into frontend locally. Your intended direction is the opposite: frontend → fix/dashboard-jsx locally, followed by a PR from fix/dashboard-jsx → frontend remotely.
+            
+            This preserves your PR-based workflow and branch protection rules.
