@@ -749,3 +749,71 @@ button:disabled {
     width: 100%;
   }
 }
+
+
+/* Ticket status update controls */
+.ticket-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.ticket-status-actions select {
+  min-width: 150px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  font: inherit;
+}
+
+.ticket-status-update-button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.ticket-status-update-button:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.ticket-status-feedback {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+/* Close ticket controls */
+.ticket-close-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.ticket-close-button {
+  padding: 10px 14px;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.ticket-close-button:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.ticket-close-feedback {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
