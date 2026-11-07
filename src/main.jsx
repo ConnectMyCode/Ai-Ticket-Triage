@@ -33,6 +33,9 @@ function App() {
     const [createTicketMessage, setCreateTicketMessage] = useState('');
     const [createTicketError, setCreateTicketError] = useState('');
     const [creatingTicket, setCreatingTicket] = useState(false);
+    const [ticketStatusSelections, setTicketStatusSelections] = useState({});
+    const [updatingTicketId, setUpdatingTicketId] = useState(null);
+    const [ticketStatusFeedback, setTicketStatusFeedback] = useState({});
 
 /*************************************************************************************************************************/
 
@@ -314,6 +317,82 @@ function App() {
             );
         } finally {
             setCreatingTicket(false);
+        }
+    }
+
+    async function handleUpdateTicketStatus(ticketId, currentStatus) {
+        const selectedStatus = ticketStatusSelections[ticketId] || currentStatus;
+
+        if (selectedStatus === currentStatus) {
+            setTicketStatusFeedback((previousFeedback) => ({
+                ...previousFeedback,
+                [ticketId]: 'Select a different status before updating.'
+            }));
+            return;
+        }
+
+        setUpdatingTicketId(ticketId);
+        setTicketStatusFeedback((previousFeedback) => ({
+            ...previousFeedback,
+            [ticketId]: ''
+        }));
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ status: selectedStatus })
+            });
+
+            if (!response.ok) {
+                const responseText = await response.text();
+                let errorMessage = 'Unable to update ticket status. Please try again.';
+
+                if (responseText) {
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch {
+                        errorMessage = responseText;
+                    }
+                }
+
+                setTicketStatusFeedback((previousFeedback) => ({
+                    ...previousFeedback,
+                    [ticketId]: errorMessage
+                }));
+                return;
+            }
+
+            // The status endpoint returns an empty response body.
+            // Do not call response.json() here.
+            try {
+                await refreshDashboard();
+                setTicketStatusSelections((previousSelections) => ({
+                    ...previousSelections,
+                    [ticketId]: selectedStatus
+                }));
+                setTicketStatusFeedback((previousFeedback) => ({
+                    ...previousFeedback,
+                    [ticketId]: 'Ticket status updated successfully.'
+                }));
+            } catch {
+                setTicketStatusFeedback((previousFeedback) => ({
+                    ...previousFeedback,
+                    [ticketId]: 'Status updated, but the dashboard could not refresh. Please reload the page.'
+                }));
+            }
+        } catch {
+            setTicketStatusFeedback((previousFeedback) => ({
+                ...previousFeedback,
+                [ticketId]: 'Unable to connect to the backend. Please try again.'
+            }));
+        } finally {
+            setUpdatingTicketId(null);
         }
     }
 
@@ -684,7 +763,43 @@ function App() {
                                                 {ticket.priority}
                                             </span>
                                                             </div>
-                    
+
+                                                            <div className="ticket-status-actions">
+                                                                <select
+                                                                    value={ticketStatusSelections[ticket.id] || ticket.status}
+                                                                    onChange={(event) => {
+                                                                        setTicketStatusSelections((previousSelections) => ({
+                                                                            ...previousSelections,
+                                                                            [ticket.id]: event.target.value
+                                                                        }));
+                                                                        setTicketStatusFeedback((previousFeedback) => ({
+                                                                            ...previousFeedback,
+                                                                            [ticket.id]: ''
+                                                                        }));
+                                                                    }}
+                                                                    disabled={updatingTicketId === ticket.id || ticket.status === 'CLOSED'}
+                                                                    aria-label={`Change status for ticket ${ticket.id}`}
+                                                                >
+                                                                    <option value="OPEN">Open</option>
+                                                                    <option value="IN_PROGRESS">In Progress</option>
+                                                                    <option value="CLOSED">Closed</option>
+                                                                </select>
+                                                                <button
+                                                                    className="ticket-status-update-button"
+                                                                    type="button"
+                                                                    onClick={() => handleUpdateTicketStatus(ticket.id, ticket.status)}
+                                                                    disabled={updatingTicketId === ticket.id || ticket.status === 'CLOSED'}
+                                                                >
+                                                                    {updatingTicketId === ticket.id ? 'Updating...' : 'Update Status'}
+                                                                </button>
+                                                            </div>
+
+                                                            {ticketStatusFeedback[ticket.id] && (
+                                                                <p className="ticket-status-feedback" role="status">
+                                                                    {ticketStatusFeedback[ticket.id]}
+                                                                </p>
+                                                            )}
+
                                                         </article>
                                                     ))}
                                                 </div>
