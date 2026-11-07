@@ -132,3 +132,14 @@ Got it. Your situation is:
             Important: Do not merge fix/dashboard-jsx into frontend locally. Your intended direction is the opposite: frontend → fix/dashboard-jsx locally, followed by a PR from fix/dashboard-jsx → frontend remotely.
             
             This preserves your PR-based workflow and branch protection rules.
+
+
+
+
+        UPDATED WAY of PULLING THE CHANGES WHEN CHANGES ARE ADDED BY THE OPENAI FROM CHATGPT 
+        
+1. Changes are automatically commited by Chatgpt into ---> fix/dashboard Remote repo branch 
+2. Then I create a Pull request and Using 2 acct:aryaningle1234.i@gmail,com I Approve the request 
+3. Next squash and merge IMP: base:frontend   source:fix/dashboard-jsx
+4. Then for updating local branch ---> I :->   ''' git pull --no-rebase origin fix/dashboard-jsx '''
+5. 

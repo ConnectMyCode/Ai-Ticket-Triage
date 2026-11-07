@@ -38,6 +38,9 @@ function App() {
     const [ticketStatusFeedback, setTicketStatusFeedback] = useState({});
     const [closingTicketId, setClosingTicketId] = useState(null);
     const [closeTicketFeedback, setCloseTicketFeedback] = useState({});
+    const [ticketStatusFilter, setTicketStatusFilter] = useState('');
+    const [ticketPriorityFilter, setTicketPriorityFilter] = useState('');
+    const [applyingTicketFilters, setApplyingTicketFilters] = useState(false);
 
 /*************************************************************************************************************************/
 
@@ -199,7 +202,8 @@ function App() {
     async function fetchTicketPage(
         status = '',
         pageNumber = 0,
-        pageSize = status ? 1 : 5
+        pageSize = status ? 1 : 5,
+        priority = ''
     ) {
         const params = new URLSearchParams({
             page: String(pageNumber),
@@ -208,6 +212,10 @@ function App() {
 
         if (status) {
             params.append('status', status);
+        }
+
+        if (priority) {
+            params.append('priority', priority);
         }
 
         const response = await fetch(
@@ -237,7 +245,7 @@ function App() {
             inProgressTickets,
             closedTickets
         ] = await Promise.all([
-            fetchTicketPage(),
+            fetchTicketPage(ticketStatusFilter, 0, 5, ticketPriorityFilter),
             fetchTicketPage('OPEN'),
             fetchTicketPage('IN_PROGRESS'),
             fetchTicketPage('CLOSED')
@@ -466,6 +474,50 @@ function App() {
         }
     }
 
+    async function handleApplyTicketFilters() {
+        setApplyingTicketFilters(true);
+        setDashboardError('');
+
+        try {
+            const filteredTickets = await fetchTicketPage(
+                ticketStatusFilter,
+                0,
+                5,
+                ticketPriorityFilter
+            );
+
+            setTickets(filteredTickets.content || []);
+            setTicketPage(0);
+            setHasMoreTickets(
+                (filteredTickets.number || 0) < (filteredTickets.totalPages || 1) - 1
+            );
+        } catch (error) {
+            setDashboardError(error.message);
+        } finally {
+            setApplyingTicketFilters(false);
+        }
+    }
+
+    async function handleClearTicketFilters() {
+        setTicketStatusFilter('');
+        setTicketPriorityFilter('');
+        setApplyingTicketFilters(true);
+        setDashboardError('');
+
+        try {
+            const firstPage = await fetchTicketPage('', 0, 5);
+            setTickets(firstPage.content || []);
+            setTicketPage(0);
+            setHasMoreTickets(
+                (firstPage.number || 0) < (firstPage.totalPages || 1) - 1
+            );
+        } catch (error) {
+            setDashboardError(error.message);
+        } finally {
+            setApplyingTicketFilters(false);
+        }
+    }
+
     async function handleLoadMoreTickets() {
         if (loadingMoreTickets || !hasMoreTickets) {
             return;
@@ -476,7 +528,7 @@ function App() {
         setLoadingMoreTickets(true);
 
         try {
-            const nextTicketPage = await fetchTicketPage('', nextPage, 5);
+            const nextTicketPage = await fetchTicketPage(ticketStatusFilter, nextPage, 5, ticketPriorityFilter);
 
             setTickets((previousTickets) => [
                 ...previousTickets,
@@ -781,6 +833,49 @@ function App() {
                                                 <h2>Recent Tickets</h2>
                                                 <p>Your latest support tickets.</p>
                                             </div>
+                                        </div>
+
+                                        <div className="ticket-filters">
+                                            <label htmlFor="ticket-status-filter">Status</label>
+                                            <select
+                                                id="ticket-status-filter"
+                                                value={ticketStatusFilter}
+                                                onChange={(event) => setTicketStatusFilter(event.target.value)}
+                                            >
+                                                <option value="">All statuses</option>
+                                                <option value="OPEN">Open</option>
+                                                <option value="IN_PROGRESS">In Progress</option>
+                                                <option value="CLOSED">Closed</option>
+                                            </select>
+
+                                            <label htmlFor="ticket-priority-filter">Priority</label>
+                                            <select
+                                                id="ticket-priority-filter"
+                                                value={ticketPriorityFilter}
+                                                onChange={(event) => setTicketPriorityFilter(event.target.value)}
+                                            >
+                                                <option value="">All priorities</option>
+                                                <option value="LOW">Low</option>
+                                                <option value="MEDIUM">Medium</option>
+                                                <option value="HIGH">High</option>
+                                            </select>
+
+                                            <button
+                                                className="ticket-filter-button"
+                                                type="button"
+                                                onClick={handleApplyTicketFilters}
+                                                disabled={applyingTicketFilters}
+                                            >
+                                                {applyingTicketFilters ? 'Applying...' : 'Apply Filters'}
+                                            </button>
+                                            <button
+                                                className="ticket-filter-clear-button"
+                                                type="button"
+                                                onClick={handleClearTicketFilters}
+                                                disabled={applyingTicketFilters}
+                                            >
+                                                Clear
+                                            </button>
                                         </div>
 
 
