@@ -245,7 +245,7 @@ function App() {
             inProgressTickets,
             closedTickets
         ] = await Promise.all([
-            fetchTicketPage(),
+            fetchTicketPage(ticketStatusFilter, 0, 5, ticketPriorityFilter),
             fetchTicketPage('OPEN'),
             fetchTicketPage('IN_PROGRESS'),
             fetchTicketPage('CLOSED')
