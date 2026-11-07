@@ -36,6 +36,8 @@ function App() {
     const [ticketStatusSelections, setTicketStatusSelections] = useState({});
     const [updatingTicketId, setUpdatingTicketId] = useState(null);
     const [ticketStatusFeedback, setTicketStatusFeedback] = useState({});
+    const [closingTicketId, setClosingTicketId] = useState(null);
+    const [closeTicketFeedback, setCloseTicketFeedback] = useState({});
 
 /*************************************************************************************************************************/
 
@@ -393,6 +395,74 @@ function App() {
             }));
         } finally {
             setUpdatingTicketId(null);
+        }
+    }
+
+    async function handleCloseTicket(ticketId, currentStatus) {
+        if (currentStatus === 'CLOSED') {
+            setCloseTicketFeedback((previousFeedback) => ({
+                ...previousFeedback,
+                [ticketId]: 'This ticket is already closed.'
+            }));
+            return;
+        }
+
+        setClosingTicketId(ticketId);
+        setCloseTicketFeedback((previousFeedback) => ({
+            ...previousFeedback,
+            [ticketId]: ''
+        }));
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}/close`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const responseText = await response.text();
+                let errorMessage = 'Unable to close ticket. Please try again.';
+
+                if (responseText) {
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch {
+                        errorMessage = responseText;
+                    }
+                }
+
+                setCloseTicketFeedback((previousFeedback) => ({
+                    ...previousFeedback,
+                    [ticketId]: errorMessage
+                }));
+                return;
+            }
+
+            // The close endpoint returns an empty response body.
+            // Do not call response.json() here.
+            try {
+                await refreshDashboard();
+                setCloseTicketFeedback((previousFeedback) => ({
+                    ...previousFeedback,
+                    [ticketId]: 'Ticket closed successfully.'
+                }));
+            } catch {
+                setCloseTicketFeedback((previousFeedback) => ({
+                    ...previousFeedback,
+                    [ticketId]: 'Ticket closed, but the dashboard could not refresh. Please reload the page.'
+                }));
+            }
+        } catch {
+            setCloseTicketFeedback((previousFeedback) => ({
+                ...previousFeedback,
+                [ticketId]: 'Unable to connect to the backend. Please try again.'
+            }));
+        } finally {
+            setClosingTicketId(null);
         }
     }
 
@@ -797,6 +867,27 @@ function App() {
                                                             {ticketStatusFeedback[ticket.id] && (
                                                                 <p className="ticket-status-feedback" role="status">
                                                                     {ticketStatusFeedback[ticket.id]}
+                                                                </p>
+                                                            )}
+
+                                                            <div className="ticket-close-actions">
+                                                                <button
+                                                                    className="ticket-close-button"
+                                                                    type="button"
+                                                                    onClick={() => handleCloseTicket(ticket.id, ticket.status)}
+                                                                    disabled={closingTicketId === ticket.id || ticket.status === 'CLOSED'}
+                                                                >
+                                                                    {closingTicketId === ticket.id
+                                                                        ? 'Closing...'
+                                                                        : ticket.status === 'CLOSED'
+                                                                            ? 'Ticket Closed'
+                                                                            : 'Close Ticket'}
+                                                                </button>
+                                                            </div>
+
+                                                            {closeTicketFeedback[ticket.id] && (
+                                                                <p className="ticket-close-feedback" role="status">
+                                                                    {closeTicketFeedback[ticket.id]}
                                                                 </p>
                                                             )}
 
