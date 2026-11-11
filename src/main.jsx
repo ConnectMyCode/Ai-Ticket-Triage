@@ -41,6 +41,9 @@ function App() {
     const [ticketStatusFilter, setTicketStatusFilter] = useState('');
     const [ticketPriorityFilter, setTicketPriorityFilter] = useState('');
     const [applyingTicketFilters, setApplyingTicketFilters] = useState(false);
+    const [triagingTicketId, setTriagingTicketId] = useState(null);
+    const [triageResults, setTriageResults] = useState({});
+    const [triageFeedback, setTriageFeedback] = useState({});
 
 /*************************************************************************************************************************/
 
@@ -471,6 +474,61 @@ function App() {
             }));
         } finally {
             setClosingTicketId(null);
+        }
+    }
+
+    async function handleRunAiTriage(ticketId) {
+        setTriagingTicketId(ticketId);
+        setTriageFeedback((previousFeedback) => ({
+            ...previousFeedback,
+            [ticketId]: ''
+        }));
+
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/api/tickets/${ticketId}/triage/run`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                }
+            );
+
+            const responseText = await response.text();
+            let responseData = {};
+
+            if (responseText) {
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch {
+                    responseData = {};
+                }
+            }
+
+            if (!response.ok) {
+                const errorMessage = responseData.message
+                    || 'Unable to run AI triage. Please try again.';
+
+                setTriageFeedback((previousFeedback) => ({
+                    ...previousFeedback,
+                    [ticketId]: errorMessage
+                }));
+                return;
+            }
+
+            setTriageResults((previousResults) => ({
+                ...previousResults,
+                [ticketId]: responseData
+            }));
+        } catch {
+            setTriageFeedback((previousFeedback) => ({
+                ...previousFeedback,
+                [ticketId]: 'Unable to connect to the backend. Please try again.'
+            }));
+        } finally {
+            setTriagingTicketId(null);
         }
     }
 
@@ -979,6 +1037,40 @@ function App() {
                                                                             : 'Close Ticket'}
                                                                 </button>
                                                             </div>
+
+                                                            <div className="ticket-triage-actions">
+                                                                <button
+                                                                    className="ticket-triage-button"
+                                                                    type="button"
+                                                                    onClick={() => handleRunAiTriage(ticket.id)}
+                                                                    disabled={triagingTicketId === ticket.id || ticket.status === 'CLOSED'}
+                                                                >
+                                                                    {triagingTicketId === ticket.id ? 'Running AI Triage...' : 'Run AI Triage'}
+                                                                </button>
+                                                            </div>
+
+                                                            {triageFeedback[ticket.id] && (
+                                                                <p className="ticket-triage-feedback" role="alert">
+                                                                    {triageFeedback[ticket.id]}
+                                                                </p>
+                                                            )}
+
+                                                            {triageResults[ticket.id] && (
+                                                                <section className="ticket-triage-result" aria-label={`AI triage result for ticket ${ticket.id}`}>
+                                                                    <h4>AI Triage Result</h4>
+                                                                    <p><strong>Category:</strong> {triageResults[ticket.id].category || 'Not provided'}</p>
+                                                                    <p><strong>Suggested priority:</strong> {triageResults[ticket.id].priority || 'Not provided'}</p>
+                                                                    <p><strong>Sentiment:</strong> {triageResults[ticket.id].sentiment || 'Not provided'}</p>
+                                                                    <p><strong>Tags:</strong> {Array.isArray(triageResults[ticket.id].tags) && triageResults[ticket.id].tags.length > 0
+                                                                        ? triageResults[ticket.id].tags.join(', ')
+                                                                        : 'None'}</p>
+                                                                    <p><strong>Summary:</strong> {triageResults[ticket.id].summary || 'Not provided'}</p>
+                                                                    <div className="ticket-triage-reply">
+                                                                        <strong>Reply draft</strong>
+                                                                        <p>{triageResults[ticket.id].replyDraft || 'Not provided'}</p>
+                                                                    </div>
+                                                                </section>
+                                                            )}
 
                                                             {closeTicketFeedback[ticket.id] && (
                                                                 <p className="ticket-close-feedback" role="status">
