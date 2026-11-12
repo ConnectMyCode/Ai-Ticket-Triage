@@ -495,8 +495,16 @@ function App() {
 
         try {
             // This endpoint returns only tickets belonging to the authenticated user.
-            const ticketPageData = await fetchTicketPage('', 0, 100);
-            setTriageTickets(ticketPageData.content || []);
+            const firstPage = await fetchTicketPage('', 0, 100);
+            let allUserTickets = firstPage.content || [];
+
+            // Load any remaining pages so the page can list all of this user's tickets.
+            for (let pageNumber = 1; pageNumber < (firstPage.totalPages || 1); pageNumber++) {
+                const nextPage = await fetchTicketPage('', pageNumber, 100);
+                allUserTickets = [...allUserTickets, ...(nextPage.content || [])];
+            }
+
+            setTriageTickets(allUserTickets);
         } catch (error) {
             setTriageTicketsError(error.message);
         } finally {
