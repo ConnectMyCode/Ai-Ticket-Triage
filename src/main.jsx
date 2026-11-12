@@ -41,7 +41,6 @@ function App() {
     const [ticketStatusFilter, setTicketStatusFilter] = useState('');
     const [ticketPriorityFilter, setTicketPriorityFilter] = useState('');
     const [applyingTicketFilters, setApplyingTicketFilters] = useState(false);
-
 /*************************************************************************************************************************/
 
 
