@@ -41,6 +41,17 @@ function App() {
     const [ticketStatusFilter, setTicketStatusFilter] = useState('');
     const [ticketPriorityFilter, setTicketPriorityFilter] = useState('');
     const [applyingTicketFilters, setApplyingTicketFilters] = useState(false);
+
+    // AI Triage page state
+    const [triageTickets, setTriageTickets] = useState([]);
+    const [triageTicketsLoading, setTriageTicketsLoading] = useState(false);
+    const [triageTicketsError, setTriageTicketsError] = useState('');
+    const [selectedTriageTicketId, setSelectedTriageTicketId] = useState('');
+    const [triageResult, setTriageResult] = useState(null);
+    const [triageLoading, setTriageLoading] = useState(false);
+    const [triageSaving, setTriageSaving] = useState(false);
+    const [triageMessage, setTriageMessage] = useState('');
+    const [triageError, setTriageError] = useState('');
 /*************************************************************************************************************************/
 
 
@@ -473,6 +484,133 @@ function App() {
         }
     }
 
+
+    async function loadTriageTickets() {
+        setTriageTicketsLoading(true);
+        setTriageTicketsError('');
+        setTriageError('');
+        setTriageMessage('');
+        setTriageResult(null);
+        setSelectedTriageTicketId('');
+
+        try {
+            // This endpoint returns only tickets belonging to the authenticated user.
+            const ticketPageData = await fetchTicketPage('', 0, 100);
+            setTriageTickets(ticketPageData.content || []);
+        } catch (error) {
+            setTriageTicketsError(error.message);
+        } finally {
+            setTriageTicketsLoading(false);
+        }
+    }
+
+    async function handleRunAiTriage() {
+        if (!selectedTriageTicketId) {
+            setTriageError('Please select a ticket first.');
+            return;
+        }
+
+        setTriageLoading(true);
+        setTriageError('');
+        setTriageMessage('');
+        setTriageResult(null);
+
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/api/tickets/${selectedTriageTicketId}/triage/run`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                }
+            );
+
+            const responseText = await response.text();
+            let responseData = {};
+
+            if (responseText) {
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch {
+                    responseData = { message: responseText };
+                }
+            }
+
+            if (!response.ok) {
+                throw new Error(responseData.message || responseData.error || 'Unable to run AI triage.');
+            }
+
+            setTriageResult(responseData);
+        } catch (error) {
+            setTriageError(error.message || 'Unable to connect to the backend.');
+        } finally {
+            setTriageLoading(false);
+        }
+    }
+
+    async function handleSaveTriage() {
+        if (!triageResult || !selectedTriageTicketId) {
+            return;
+        }
+
+        setTriageSaving(true);
+        setTriageError('');
+        setTriageMessage('');
+
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/api/tickets/${selectedTriageTicketId}/triage/save`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    },
+                    // The save DTO does not include tags.
+                    body: JSON.stringify({
+                        category: triageResult.category,
+                        sentiment: triageResult.sentiment,
+                        priority: triageResult.priority,
+                        summary: triageResult.summary,
+                        replyDraft: triageResult.replyDraft
+                    })
+                }
+            );
+
+            const responseText = await response.text();
+            if (!response.ok) {
+                let errorMessage = 'Unable to save triage result.';
+                if (responseText) {
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch {
+                        errorMessage = responseText;
+                    }
+                }
+                throw new Error(errorMessage);
+            }
+
+            // Save succeeds with an empty response body.
+            setTriageMessage('Triage result saved successfully.');
+            setTriageResult(null);
+        } catch (error) {
+            setTriageError(error.message || 'Unable to connect to the backend.');
+        } finally {
+            setTriageSaving(false);
+        }
+    }
+
+    function handleRejectTriage() {
+        // Reject is local only; there is no backend delete endpoint.
+        setTriageResult(null);
+        setTriageError('');
+        setTriageMessage('Triage result rejected. Nothing was saved.');
+    }
+
     async function handleApplyTicketFilters() {
         setApplyingTicketFilters(true);
         setDashboardError('');
@@ -699,6 +837,17 @@ function App() {
                     >
                         <span>＋</span> Create Ticket
                     </button>
+
+                    <button
+                        className={`nav-item ${page === 'ai-triage' ? 'active' : ''}`}
+                        type="button"
+                        onClick={() => {
+                            setPage('ai-triage');
+                            loadTriageTickets();
+                        }}
+                    >
+                        <span>✦</span> AI Triage
+                    </button>
                 </nav>
 
                 <div className="sidebar-footer">
@@ -716,13 +865,96 @@ function App() {
             <main className="main-content">
                 <header className="topbar">
                     <div>
-                        <p className="breadcrumb">Workspace / Dashboard</p>
-                        <h1>Dashboard</h1>
+                        <p className="breadcrumb">Workspace / {page === 'ai-triage' ? 'AI Triage' : page === 'create-ticket' ? 'Create Ticket' : 'Dashboard'}</p>
+                        <h1>{page === 'ai-triage' ? 'AI Triage' : page === 'create-ticket' ? 'Create Ticket' : 'Dashboard'}</h1>
                     </div>
                     <span className="environment-label">Frontend Preview</span>
                 </header>
 
-                {page === 'create-ticket' ? (
+                {page === 'ai-triage' ? (
+                    <section className="tickets-panel ai-triage-panel">
+                        <div className="panel-header">
+                            <div>
+                                <h2>Select a Ticket</h2>
+                                <p>Choose one of your tickets to generate an AI triage suggestion.</p>
+                            </div>
+                            <button className="secondary-button" type="button" onClick={loadTriageTickets} disabled={triageTicketsLoading}>
+                                {triageTicketsLoading ? 'Refreshing...' : 'Refresh Tickets'}
+                            </button>
+                        </div>
+
+                        {triageTicketsLoading && <p className="dashboard-message">Loading your tickets...</p>}
+                        {triageTicketsError && <p className="dashboard-error" role="alert">{triageTicketsError}</p>}
+
+                        {!triageTicketsLoading && !triageTicketsError && triageTickets.length === 0 && (
+                            <div className="empty-state">
+                                <div className="empty-icon">▤</div>
+                                <h3>No tickets found</h3>
+                                <p>Your tickets will appear here after you create them.</p>
+                            </div>
+                        )}
+
+                        {!triageTicketsLoading && triageTickets.length > 0 && (
+                            <div className="ai-triage-ticket-list">
+                                {triageTickets.map((ticket) => (
+                                    <label className={`ai-triage-ticket-option ${String(selectedTriageTicketId) === String(ticket.id) ? 'selected' : ''}`} key={ticket.id}>
+                                        <input
+                                            type="radio"
+                                            name="selected-triage-ticket"
+                                            value={ticket.id}
+                                            checked={String(selectedTriageTicketId) === String(ticket.id)}
+                                            onChange={() => {
+                                                setSelectedTriageTicketId(String(ticket.id));
+                                                setTriageResult(null);
+                                                setTriageError('');
+                                                setTriageMessage('');
+                                            }}
+                                        />
+                                        <span>
+                                            <strong>#{ticket.id} — {ticket.title}</strong>
+                                            <small>{ticket.status} · {ticket.priority}</small>
+                                            <small>{ticket.description || 'No description available.'}</small>
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+
+                        {selectedTriageTicketId && (
+                            <div className="ai-triage-actions">
+                                <button className="primary-button" type="button" onClick={handleRunAiTriage} disabled={triageLoading || triageSaving}>
+                                    {triageLoading ? 'Running AI Triage...' : 'Run AI Triage'}
+                                </button>
+                            </div>
+                        )}
+
+                        {triageError && <p className="create-ticket-error" role="alert">{triageError}</p>}
+                        {triageMessage && <p className="create-ticket-success" role="status">{triageMessage}</p>}
+
+                        {triageResult && (
+                            <section className="ai-triage-result">
+                                <h2>AI Triage Result</h2>
+                                <p><strong>Category:</strong> {triageResult.category}</p>
+                                <p><strong>Suggested priority:</strong> {triageResult.priority}</p>
+                                <p><strong>Sentiment:</strong> {triageResult.sentiment}</p>
+                                <p><strong>Tags:</strong> {(triageResult.tags || []).join(', ') || 'None'}</p>
+                                <p><strong>Summary:</strong> {triageResult.summary}</p>
+                                <div>
+                                    <strong>Reply draft:</strong>
+                                    <p>{triageResult.replyDraft}</p>
+                                </div>
+                                <div className="ai-triage-actions">
+                                    <button className="primary-button" type="button" onClick={handleSaveTriage} disabled={triageSaving}>
+                                        {triageSaving ? 'Saving...' : 'Save Triage'}
+                                    </button>
+                                    <button className="secondary-button" type="button" onClick={handleRejectTriage} disabled={triageSaving}>
+                                        Reject
+                                    </button>
+                                </div>
+                            </section>
+                        )}
+                    </section>
+                ) : page === 'create-ticket' ? (
                     <section className="create-ticket-panel">
                         <div className="panel-header">
                             <div>
