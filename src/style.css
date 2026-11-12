@@ -886,3 +886,73 @@ button:disabled {
     width: 100%;
   }
 }
+
+
+/* Separate AI Triage page */
+.ai-triage-panel {
+  max-width: 1000px;
+}
+
+.ai-triage-ticket-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.ai-triage-ticket-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.ai-triage-ticket-option.selected {
+  border-color: var(--primary);
+  background: #eff6ff;
+}
+
+.ai-triage-ticket-option input {
+  margin-top: 4px;
+}
+
+.ai-triage-ticket-option span {
+  display: grid;
+  gap: 6px;
+}
+
+.ai-triage-ticket-option small {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.ai-triage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.ai-triage-result {
+  margin-top: 28px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.ai-triage-result h2 {
+  margin-top: 0;
+}
+
+.ai-triage-result p {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.ai-triage-result .ai-triage-actions {
+  justify-content: flex-start;
+}
