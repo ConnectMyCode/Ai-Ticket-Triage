@@ -946,7 +946,6 @@ function App() {
                                 ))}
                             </div>
                         )}
-                            </section>
 
                                 {selectedTriageTicketId && (
                                     <div className="ai-triage-actions">
@@ -955,6 +954,7 @@ function App() {
                                         </button>
                                     </div>
                                 )}
+                            </section>
                             <section className="ai-triage-details-column">
                                 {!selectedTriageTicketId ? (
                                     <div className="ai-triage-details-empty">
