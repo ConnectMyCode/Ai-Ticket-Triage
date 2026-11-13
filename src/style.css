@@ -893,10 +893,71 @@ button:disabled {
   max-width: 1000px;
 }
 
+.ai-triage-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  gap: 24px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+.ai-triage-ticket-column,
+.ai-triage-details-column {
+  min-width: 0;
+}
+
 .ai-triage-ticket-list {
   display: grid;
   gap: 12px;
-  margin-top: 24px;
+}
+
+.ai-triage-details-column {
+  position: sticky;
+  top: 20px;
+}
+
+.ai-triage-ticket-details,
+.ai-triage-details-empty {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.ai-triage-ticket-details h2,
+.ai-triage-details-empty h2 {
+  margin: 0 0 14px;
+  font-size: 17px;
+}
+
+.ai-triage-ticket-details p,
+.ai-triage-details-empty p {
+  margin: 9px 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.ai-triage-saved-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 850px) {
+  .ai-triage-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-triage-details-column {
+    position: static;
+  }
 }
 
 .ai-triage-ticket-option {
