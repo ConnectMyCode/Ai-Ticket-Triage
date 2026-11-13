@@ -918,6 +918,8 @@ function App() {
                             </div>
                         )}
 
+                        <div className="ai-triage-workspace">
+                            <section className="ai-triage-ticket-column">
                         {!triageTicketsLoading && triageTickets.length > 0 && (
                             <div className="ai-triage-ticket-list">
                                 {triageTickets.map((ticket) => (
@@ -944,9 +946,8 @@ function App() {
                                 ))}
                             </div>
                         )}
+                            </section>
 
-                        <div className="ai-triage-workspace">
-                            <section className="ai-triage-ticket-column">
                                 {selectedTriageTicketId && (
                                     <div className="ai-triage-actions">
                                         <button className="primary-button" type="button" onClick={handleRunAiTriage} disabled={triageLoading || triageSaving}>
@@ -954,7 +955,6 @@ function App() {
                                         </button>
                                     </div>
                                 )}
-                            </section>
                             <section className="ai-triage-details-column">
                                 {!selectedTriageTicketId ? (
                                     <div className="ai-triage-details-empty">
