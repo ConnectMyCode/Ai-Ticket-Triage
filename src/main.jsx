@@ -1061,6 +1061,7 @@ function App() {
                                         {triageError && <p className="create-ticket-error" role="alert">{triageError}</p>}
                                         {triageMessage && <p className="create-ticket-success" role="status">{triageMessage}</p>}
                                         {triageResult ? (
+                                            <>
                                             <section className="ai-triage-result">
                                                 <h2>AI Triage Result</h2>
                                                 <p><strong>Category:</strong> {triageResult.category}</p>
@@ -1124,6 +1125,7 @@ function App() {
                                                     )}
                                                 </section>
                                             )}
+                                            </>
                                         ) : (
                                             <div className="ai-triage-details-empty">
                                                 <h2>AI Triage Result</h2>
