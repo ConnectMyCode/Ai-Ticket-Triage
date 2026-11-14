@@ -1017,3 +1017,48 @@ button:disabled {
 .ai-triage-result .ai-triage-actions {
   justify-content: flex-start;
 }
+
+
+/* Respond to ticket form */
+.ai-triage-response-form {
+  margin-top: 20px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.ai-triage-response-form h2 {
+  margin-top: 0;
+}
+
+.ai-triage-response-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-triage-response-form label {
+  margin-top: 8px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ai-triage-response-form textarea {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  font: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.ai-triage-response-form textarea:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 10%);
+}
