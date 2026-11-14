@@ -52,6 +52,10 @@ function App() {
     const [triageResultsByTicket, setTriageResultsByTicket] = useState({});
     const [triageLoading, setTriageLoading] = useState(false);
     const [triageSaving, setTriageSaving] = useState(false);
+    const [finalResponse, setFinalResponse] = useState('');
+    const [resolutionNote, setResolutionNote] = useState('');
+    const [respondingTicketId, setRespondingTicketId] = useState(null);
+    const [respondFeedback, setRespondFeedback] = useState({});
     const [triageMessage, setTriageMessage] = useState('');
     const [triageError, setTriageError] = useState('');
 /*************************************************************************************************************************/
@@ -621,6 +625,81 @@ function App() {
         }
     }
 
+    async function handleRespondToTicket() {
+        const trimmedResponse = finalResponse.trim();
+        const trimmedResolutionNote = resolutionNote.trim();
+
+        if (!selectedTriageTicketId || !trimmedResponse || !trimmedResolutionNote) {
+            setRespondFeedback((previousFeedback) => ({
+                ...previousFeedback,
+                [selectedTriageTicketId]: 'Enter both the final response and resolution note.'
+            }));
+            return;
+        }
+
+        const selectedTicket = triageTickets.find(
+            (ticket) => String(ticket.id) === String(selectedTriageTicketId)
+        );
+
+        if (selectedTicket?.status === 'CLOSED') {
+            setRespondFeedback((previousFeedback) => ({
+                ...previousFeedback,
+                [selectedTriageTicketId]: 'A closed ticket cannot receive a response.'
+            }));
+            return;
+        }
+
+        setRespondingTicketId(selectedTriageTicketId);
+        setRespondFeedback((previousFeedback) => ({
+            ...previousFeedback,
+            [selectedTriageTicketId]: ''
+        }));
+
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/api/tickets/${selectedTriageTicketId}/respond`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        finalResponse: trimmedResponse,
+                        resolutionNote: trimmedResolutionNote
+                    })
+                }
+            );
+
+            const responseText = await response.text();
+            if (!response.ok) {
+                let errorMessage = 'Unable to submit the ticket response.';
+                if (responseText) {
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch {
+                        errorMessage = responseText;
+                    }
+                }
+                throw new Error(errorMessage);
+            }
+
+            setRespondFeedback((previousFeedback) => ({
+                ...previousFeedback,
+                [selectedTriageTicketId]: 'Response submitted successfully.'
+            }));
+        } catch (error) {
+            setRespondFeedback((previousFeedback) => ({
+                ...previousFeedback,
+                [selectedTriageTicketId]: error.message || 'Unable to connect to the backend.'
+            }));
+        } finally {
+            setRespondingTicketId(null);
+        }
+    }
+
     function handleRejectTriage() {
         // Reject is local only; there is no backend delete endpoint.
         if (selectedTriageTicketId && !triageResultsByTicket[selectedTriageTicketId]?.saved) {
@@ -933,6 +1012,8 @@ function App() {
                                                 const ticketId = String(ticket.id);
                                                 setSelectedTriageTicketId(ticketId);
                                                 setTriageResult(triageResultsByTicket[ticketId]?.result || null);
+                                                setFinalResponse(triageResultsByTicket[ticketId]?.result?.replyDraft || '');
+                                                setResolutionNote('');
                                                 setTriageError('');
                                                 setTriageMessage(triageResultsByTicket[ticketId]?.saved ? 'Previously saved triage result.' : '');
                                             }}
@@ -999,6 +1080,50 @@ function App() {
                                                     )}
                                                 </div>
                                             </section>
+                                            {triageResultsByTicket[selectedTriageTicketId]?.saved && (
+                                                <section className="ai-triage-response-form">
+                                                    <h2>Respond to Ticket</h2>
+                                                    {triageTickets.find((ticket) => String(ticket.id) === String(selectedTriageTicketId))?.status === 'CLOSED' ? (
+                                                        <p>This ticket is closed and cannot receive a response.</p>
+                                                    ) : (
+                                                        <form onSubmit={(event) => {
+                                                            event.preventDefault();
+                                                            handleRespondToTicket();
+                                                        }}>
+                                                            <label htmlFor="final-ticket-response">Final response</label>
+                                                            <textarea
+                                                                id="final-ticket-response"
+                                                                value={finalResponse}
+                                                                onChange={(event) => setFinalResponse(event.target.value)}
+                                                                rows={6}
+                                                                required
+                                                            />
+                                                            <label htmlFor="ticket-resolution-note">Resolution note</label>
+                                                            <textarea
+                                                                id="ticket-resolution-note"
+                                                                value={resolutionNote}
+                                                                onChange={(event) => setResolutionNote(event.target.value)}
+                                                                rows={4}
+                                                                required
+                                                            />
+                                                            <div className="ai-triage-actions">
+                                                                <button
+                                                                    className="primary-button"
+                                                                    type="submit"
+                                                                    disabled={respondingTicketId === selectedTriageTicketId}
+                                                                >
+                                                                    {respondingTicketId === selectedTriageTicketId ? 'Submitting...' : 'Submit Response'}
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    )}
+                                                    {respondFeedback[selectedTriageTicketId] && (
+                                                        <p className="create-ticket-success" role="status">
+                                                            {respondFeedback[selectedTriageTicketId]}
+                                                        </p>
+                                                    )}
+                                                </section>
+                                            )}
                                         ) : (
                                             <div className="ai-triage-details-empty">
                                                 <h2>AI Triage Result</h2>
