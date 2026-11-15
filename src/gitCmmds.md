@@ -142,4 +142,24 @@ Got it. Your situation is:
 2. Then I create a Pull request and Using 2 acct:aryaningle1234.i@gmail,com I Approve the request 
 3. Next squash and merge IMP: base:frontend   source:fix/dashboard-jsx
 4. Then for updating local branch ---> I :->   ''' git pull --no-rebase origin fix/dashboard-jsx '''
-5. 
+
+
+Situation : If you made a local change then made a remote change and are trying the remote change to merge into local and you priority is Remote change then you need to discard the loal change using the "restore git cmmd"
+Warning: local changes will be discarded
+Recommended steps (Windows terminal)
+1. Check which files have local changes
+   git status
+
+
+2. Fetch the latest remote changes
+   git fetch origin
+
+
+3. Discard local changes in src/main.jsx
+   git restore src/main.jsx
+
+
+This restores the file to the version in your current local commit. It does not delete other files.
+
+4. Make sure your branch is up to date
+   git merge origin/fix/dashboard-jsx
